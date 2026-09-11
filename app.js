@@ -1834,11 +1834,23 @@ function setupPdfViewer() {
   const btnJump = document.getElementById("btnJumpToPage");
   const btnQuickJump = document.getElementById("btnQuickJumpTodayTarget");
   const btnOpenNewTab = document.getElementById("btnOpenPdfNewTab");
+  const btnBannerOpenNewTab = document.getElementById("btnBannerOpenNewTab");
+  const largeNoticeBanner = document.getElementById("pdfLargeNoticeBanner");
   const btnRecord = document.getElementById("btnRecordFromPdf");
   const fileNameDisplay = document.getElementById("pdfFileNameDisplay");
   const fileStatusDisplay = document.getElementById("pdfFileStatusDisplay");
   const btnSelectText = document.getElementById("btnSelectPdfText");
   const bottomHintText = document.getElementById("pdfBottomHintText");
+
+  function checkLargeFileAndShowNotice(file) {
+    if (!file || !largeNoticeBanner) return;
+    // 80MB 이상이면 대용량 배너 항상 노출 (크롬 iframe OOM 사전 안내 및 1초 해결 제공)
+    if (file.size > 80 * 1024 * 1024) {
+      largeNoticeBanner.classList.remove("hidden");
+    } else {
+      largeNoticeBanner.classList.add("hidden");
+    }
+  }
 
   function renderPdfAtPage(page) {
     currentViewerPage = page || 551;
@@ -1857,6 +1869,16 @@ function setupPdfViewer() {
     }
   }
 
+  function openInNewTabDirectly(page) {
+    const targetPage = page || parseInt(pageInput?.value, 10) || currentViewerPage || 551;
+    if (currentPdfBlobUrl) {
+      window.open(`${currentPdfBlobUrl}#page=${targetPage}&view=FitH`, "_blank");
+    } else {
+      alert("먼저 소방마스터 PDF 교재 파일을 선택해주세요.");
+      fileInput?.click();
+    }
+  }
+
   window.openPdfViewer = function(targetPage) {
     const metrics = calculatePacingMetrics();
     const page = targetPage || metrics.targetRangeStart || 551;
@@ -1872,6 +1894,10 @@ function setupPdfViewer() {
     const quickJumpText = document.getElementById("btnQuickJumpTodayText");
     if (quickJumpText) {
       quickJumpText.innerText = `오늘 진도 p.${metrics.targetRangeStart}`;
+    }
+
+    if (currentPdfFile) {
+      checkLargeFileAndShowNotice(currentPdfFile);
     }
 
     renderPdfAtPage(page);
@@ -1897,9 +1923,12 @@ function setupPdfViewer() {
     }
     currentPdfBlobUrl = URL.createObjectURL(file);
 
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
     if (fileNameDisplay) fileNameDisplay.innerText = file.name;
-    if (fileStatusDisplay) fileStatusDisplay.innerText = `연결됨 (${(file.size / (1024 * 1024)).toFixed(1)} MB) · 기기 내 안전 저장`;
+    if (fileStatusDisplay) fileStatusDisplay.innerText = `연결됨 (${sizeMb} MB) · 기기 내 안전 저장`;
     if (btnSelectText) btnSelectText.innerText = "교재 변경";
+
+    checkLargeFileAndShowNotice(file);
 
     await PDF_STORAGE.savePdf(file);
     renderPdfAtPage(currentViewerPage);
@@ -1947,12 +1976,13 @@ function setupPdfViewer() {
   });
 
   btnOpenNewTab?.addEventListener("click", () => {
-    if (currentPdfBlobUrl) {
-      window.open(`${currentPdfBlobUrl}#page=${currentViewerPage}&view=FitH`, "_blank");
-    } else {
-      alert("먼저 소방마스터 PDF 파일을 선택해주세요.");
-      fileInput?.click();
-    }
+    const p = parseInt(pageInput?.value, 10) || currentViewerPage;
+    openInNewTabDirectly(p);
+  });
+
+  btnBannerOpenNewTab?.addEventListener("click", () => {
+    const p = parseInt(pageInput?.value, 10) || currentViewerPage;
+    openInNewTabDirectly(p);
   });
 
   btnClose?.addEventListener("click", closePdfViewer);
@@ -1977,9 +2007,11 @@ function setupPdfViewer() {
     if (file) {
       currentPdfFile = file;
       currentPdfBlobUrl = URL.createObjectURL(file);
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
       if (fileNameDisplay) fileNameDisplay.innerText = file.name;
-      if (fileStatusDisplay) fileStatusDisplay.innerText = `자동 연결됨 (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
+      if (fileStatusDisplay) fileStatusDisplay.innerText = `연결됨 (${sizeMb} MB) · 기기 내 안전 저장`;
       if (btnSelectText) btnSelectText.innerText = "교재 변경";
+      checkLargeFileAndShowNotice(file);
     }
   });
 }

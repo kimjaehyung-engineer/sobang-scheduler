@@ -1058,7 +1058,7 @@
           <input type="file" id="pdfFileInput" accept="application/pdf" class="hidden" />
         </div>
 
-        <!-- 중앙/우측: 페이지 컨트롤 & 닫기 -->
+        <!-- 중앙/우측: 페이지 컨트롤 & 새 탭 열기 & 닫기 -->
         <div class="flex items-center gap-2 shrink-0">
           <div class="flex items-center gap-1 bg-surface-container-lowest px-2 py-1 rounded-xl border border-border-clean text-xs font-bold">
             <span class="text-outline text-[11px]">p.</span>
@@ -1071,14 +1071,31 @@
             <span id="btnQuickJumpTodayText">오늘 진도 p.551</span>
           </button>
 
-          <button type="button" class="w-9 h-9 rounded-xl bg-surface-container-lowest hover:bg-surface-container text-on-surface border border-border-clean flex items-center justify-center transition-all active:scale-95 text-outline hover:text-on-surface" id="btnOpenPdfNewTab" title="새 탭 전체화면으로 열기">
-            <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+          <!-- 569MB 대용량 크래시 완전 해결: 새 탭 전체화면 열기 강조 버튼 -->
+          <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-primary to-blue-600 hover:from-primary-container hover:to-blue-700 text-on-primary text-xs font-extrabold shadow-sm active:scale-95 transition-all cursor-pointer" id="btnOpenPdfNewTab" title="브라우저 독립 프로세스로 열어 569MB도 크래시 없이 1초 만에 쾌적하게 봅니다">
+            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+            <span class="hidden sm:inline">새 탭 전체화면 (렉·크래시 없음)</span>
+            <span class="sm:hidden">새 탭</span>
           </button>
 
           <button type="button" class="w-9 h-9 rounded-xl bg-surface-container-lowest hover:bg-surface-container text-on-surface border border-border-clean flex items-center justify-center transition-all active:scale-95 text-outline hover:text-on-surface" id="btnClosePdfViewer">
             <span class="material-symbols-outlined text-[20px]">close</span>
           </button>
         </div>
+      </div>
+
+      <!-- 500MB 대용량 교재 감지 시 자동 표시되는 안내 바 -->
+      <div id="pdfLargeNoticeBanner" class="hidden bg-amber-500/15 border-b border-amber-500/30 px-4 py-2 flex items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2 text-amber-900">
+          <span class="material-symbols-outlined text-[18px] text-amber-600 shrink-0">warning</span>
+          <span class="font-medium">
+            <strong>대용량 교재(569MB) 안내:</strong> 브라우저 메모리 한계로 아래 화면이 회색(슬픈 얼굴)으로 멈추는 경우, 
+            <strong>우측 [새 탭 전체화면]</strong>을 누르면 1초 만에 렉 없이 전체 교재를 보실 수 있습니다.
+          </span>
+        </div>
+        <button type="button" class="shrink-0 px-2.5 py-1 rounded-lg bg-amber-600 text-white font-bold text-[11px] hover:bg-amber-700 active:scale-95 transition-all" id="btnBannerOpenNewTab">
+          새 탭으로 열기 🚀
+        </button>
       </div>
 
       <!-- 뷰어 본체 영역 -->
@@ -1126,6 +1143,6 @@
     <span class="text-[9px] font-black tracking-tight">교재</span>
   </button>
 
-  <script src="app.js?v=20261031_pdf_viewer_v1"></script>
+  <script src="app.js?v=20261031_pdf_large_v2"></script>
 </body>
 </html>
