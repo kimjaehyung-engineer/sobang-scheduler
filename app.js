@@ -378,10 +378,23 @@ const AppState = {
       }
     }
 
+    // 550p 이하 기존 로그가 오늘 날짜로 잡혀있다면 어제 날짜로 자동 교정 (오늘 신규 20p 대기)
+    const todayStr = formatDate(new Date());
+    let hasLogModified = false;
+    this.logs.forEach(l => {
+      if (l.endPage <= 550 && l.date === todayStr) {
+        l.date = formatDate(addDays(new Date(), -1));
+        hasLogModified = true;
+      }
+    });
+    if (hasLogModified) {
+      this.saveLogs();
+    }
+
     // 400p 초과 데이터가 최근 날짜(09-08 등)에 있거나 이전 대형 로그가 있으면 2회독 베이스 구조로 자동 정규화
     const hasGiantRecentLog = this.logs.some(l => l.pageCount > 60 && l.date >= formatDate(addDays(new Date(), -7)));
-    const hasPumpToday = this.logs.some(l => l.startPage === 541 && l.endPage === 550);
-    if (hasGiantRecentLog || !hasPumpToday || this.logs.length <= 3) {
+    const hasPumpHistory = this.logs.some(l => l.startPage === 541 && l.endPage === 550);
+    if (hasGiantRecentLog || !hasPumpHistory || this.logs.length <= 3) {
       this.logs = getInitialSampleLogs(this.settings.startDate);
       this.saveLogs();
 
@@ -716,11 +729,12 @@ function renderThreeStepRoutine(metrics) {
   // STEP 2: 본 진도 전진
   const step2PageRange = document.getElementById("step2PageRange");
   const step2Memo = document.getElementById("step2Memo");
-  const todayLog = AppState.logs.find(l => l.date === todayStr);
+  // 551p 이상을 오늘 새로 학습한 로그만 완료로 판정
+  const todayNewLog = AppState.logs.find(l => l.date === todayStr && l.startPage >= 551);
 
-  if (todayLog) {
-    if (step2PageRange) step2PageRange.innerText = `p.${todayLog.startPage} ~ p.${todayLog.endPage} (${todayLog.pageCount}p) 완료됨 🎉`;
-    if (step2Memo) step2Memo.innerText = todayLog.memo;
+  if (todayNewLog) {
+    if (step2PageRange) step2PageRange.innerText = `p.${todayNewLog.startPage} ~ p.${todayNewLog.endPage} (${todayNewLog.pageCount}p) 완료됨 🎉`;
+    if (step2Memo) step2Memo.innerText = todayNewLog.memo;
   } else {
     if (step2PageRange) step2PageRange.innerText = `p.${metrics.targetRangeStart} ~ p.${metrics.targetRangeEnd} (${metrics.dailyTargetPages}p 권장)`;
     if (step2Memo) step2Memo.innerText = "[CH 08~09] 소방펌프 압력세팅 마무리 및 옥내소화전·수계설비 기초 진도 (약 30분 소요)";
@@ -737,15 +751,15 @@ function renderThreeStepRoutine(metrics) {
   const isPostStudyDone = localStorage.getItem(postStudyKey) === "true";
 
   if (step3PageRange) {
-    if (todayLog) {
-      step3PageRange.innerText = `p.${todayLog.startPage} ~ p.${todayLog.endPage} (${todayLog.pageCount}p)`;
+    if (todayNewLog) {
+      step3PageRange.innerText = `p.${todayNewLog.startPage} ~ p.${todayNewLog.endPage} (${todayNewLog.pageCount}p)`;
     } else {
       step3PageRange.innerText = `p.${metrics.targetRangeStart} ~ p.${metrics.targetRangeEnd} (${metrics.dailyTargetPages}p)`;
     }
   }
   if (step3Memo) {
     step3Memo.innerText = isPostStudyDone 
-      ? `오늘 공부한 ${todayLog ? todayLog.pageCount : metrics.dailyTargetPages}p 핵심 개념과 공식을 백지에 쓰며 10분 정착 복습을 마쳤습니다! 👏` 
+      ? `오늘 공부한 ${todayNewLog ? todayNewLog.pageCount : metrics.dailyTargetPages}p 핵심 개념과 공식을 백지에 쓰며 10분 정착 복습을 마쳤습니다! 👏` 
       : "방금 공부한 책을 덮고, 펌프 및 수계설비 핵심 공식 3가지와 주요 기준을 백지에 10분간 쓰며 오늘 공부를 마무리하세요.";
   }
 
