@@ -1,0 +1,199 @@
+/* ==========================================================================
+   소방마스터 60일 완주 & 에빙하우스 망각방지 플래너
+   디자인 시스템: Stitch "Precision Study Narrative" (Toss-Style Minimal)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. 테마 변수 (기본: Clean Study Light / 옵션: Modern Dark)
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme="light"] {
+  --bg-surface: #f8f9ff;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #eff4ff;
+  --bg-card-hover: #e9eefb;
+  --border-clean: #e2e8f0;
+
+  --text-primary: #161c25;
+  --text-secondary: #414754;
+  --text-muted: #727785;
+
+  --primary: #0059b9;
+  --primary-hover: #1071e5;
+  --primary-fixed: #d7e2ff;
+  --on-primary-fixed: #001a40;
+
+  --secondary: #b52701;
+  --secondary-fixed: #ffdad2;
+  --on-secondary-fixed: #8b1b00;
+
+  --accent-green: #16a34a;
+  --accent-amber: #d97706;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 14px rgba(0, 89, 185, 0.08), 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] {
+  --bg-surface: #0a0e17;
+  --bg-card: #0f172a;
+  --bg-card-subtle: #1e293b;
+  --bg-card-hover: #26334d;
+  --border-clean: #1e293b;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --primary: #38bdf8;
+  --primary-hover: #60a5fa;
+  --primary-fixed: rgba(56, 189, 248, 0.15);
+  --on-primary-fixed: #bae6fd;
+
+  --secondary: #f97316;
+  --secondary-fixed: rgba(249, 115, 22, 0.15);
+  --on-secondary-fixed: #fdba74;
+
+  --accent-green: #22c55e;
+  --accent-amber: #f59e0b;
+
+  --shadow-sm: none;
+  --shadow-md: none;
+}
+
+/* --------------------------------------------------------------------------
+   2. 글로벌 베이스 스타일
+   -------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: 'Pretendard', 'Inter', -apple-system, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  overflow-x: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   3. 뷰 전환 버튼 및 테마 토글 버튼 스타일
+   -------------------------------------------------------------------------- */
+.btn-view-toggle {
+  background: linear-gradient(135deg, #0059b9, #1071e5);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 89, 185, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-view-toggle:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btn-theme-toggle {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-theme-toggle:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-theme-toggle.is-dark {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fef08a;
+}
+
+/* --------------------------------------------------------------------------
+   4. 네비게이션 & 탭 전환
+   -------------------------------------------------------------------------- */
+.nav-item {
+  color: var(--text-secondary);
+}
+
+.nav-item:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-card-subtle);
+}
+
+.nav-item.active {
+  background-color: var(--primary-fixed);
+  color: var(--on-primary-fixed);
+}
+
+.tab-pane {
+  display: none;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.tab-pane.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   5. 에빙하우스 복습 큐 아이템
+   -------------------------------------------------------------------------- */
+.review-stage-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.stage-1 { background: rgba(239, 68, 68, 0.12); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.25); }
+.stage-2 { background: rgba(249, 115, 22, 0.12); color: #ea580c; border: 1px solid rgba(249, 115, 22, 0.25); }
+.stage-3 { background: rgba(234, 179, 8, 0.15); color: #b45309; border: 1px solid rgba(234, 179, 8, 0.25); }
+.stage-4 { background: rgba(59, 130, 246, 0.12); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.25); }
+.stage-5 { background: rgba(168, 85, 247, 0.12); color: #7c3aed; border: 1px solid rgba(168, 85, 247, 0.25); }
+
+.filter-btn.active {
+  background: var(--bg-card);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --------------------------------------------------------------------------
+   6. 모달 애니메이션
+   -------------------------------------------------------------------------- */
+#logModal.active,
+#settingsModal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#logModal.active > div,
+#settingsModal.active > div {
+  transform: scale(1);
+}
+
+/* --------------------------------------------------------------------------
+   7. 타이머 제어
+   -------------------------------------------------------------------------- */
+.pill-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+/* --------------------------------------------------------------------------
+   8. 프리셋 버튼
+   -------------------------------------------------------------------------- */
+.preset-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}

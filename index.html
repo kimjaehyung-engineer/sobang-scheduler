@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>소방기술사 합격 스케줄러 | 60일 완주 & 에빙하우스 망각방지</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <!-- Material Symbols & FontAwesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Tailwind CSS CDN & Stitch Design Tokens -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#f8f9ff",
+            "surface-dim": "#d5dae7",
+            "surface-bright": "#f8f9ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "surface-container": "#e9eefb",
+            "surface-container-high": "#e3e8f5",
+            "surface-container-highest": "#dde3ef",
+            "on-surface": "#161c25",
+            "on-surface-variant": "#414754",
+            "inverse-surface": "#2b313a",
+            "inverse-on-surface": "#ebf1fe",
+            "outline": "#727785",
+            "outline-variant": "#c1c6d6",
+            "surface-tint": "#005bbe",
+            "primary": "#0059b9",
+            "on-primary": "#ffffff",
+            "primary-container": "#1071e5",
+            "on-primary-container": "#fefcff",
+            "primary-fixed": "#d7e2ff",
+            "on-primary-fixed": "#001a40",
+            "secondary": "#b52701",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#fc5933",
+            "on-secondary-container": "#560d00",
+            "secondary-fixed": "#ffdad2",
+            "on-secondary-fixed-variant": "#8b1b00",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6",
+            "border-clean": "#e2e8f0"
+          },
+          fontFamily: {
+            "sans": ["Pretendard", "Inter", "sans-serif"],
+            "headline": ["Plus Jakarta Sans", "Pretendard", "sans-serif"],
+            "metric": ["Plus Jakarta Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "xl": "0.75rem",
+            "2xl": "1rem",
+            "3xl": "1.5rem"
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Chart.js & Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <link rel="stylesheet" href="style.css?v=20260911_stitch_v1" />
+</head>
+<body class="bg-surface text-on-surface antialiased font-sans min-h-screen selection:bg-primary-fixed">
+
+  <!-- ====================================================================== -->
+  <!-- 1. 최상단 Toss 감성 자극 & 글로벌 툴바 (고정)                           -->
+  <!-- ====================================================================== -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-xl border-b border-border-clean shadow-[0_1px_8px_rgba(0,0,0,0.03)] transition-all">
+    <div class="max-w-[1440px] mx-auto h-14 px-3 sm:px-6 flex items-center justify-between gap-2">
+      <!-- 좌측: 자극 배너 뱃지 & 오늘의 명언 -->
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 shadow-xs" id="coachBadge">
+          <span class="material-symbols-outlined text-[14px]">local_fire_department</span>
+          <span id="coachBadgeText">팩트폭행 모드</span>
+        </span>
+        <p class="text-xs sm:text-sm font-semibold text-on-surface truncate" id="coachQuote">
+          "기술사 합격률 1~3%. 오늘 미룬 20페이지는 내일의 불합격 통지서입니다. 지금 당장 책을 펴세요."
+        </p>
+      </div>
+
+      <!-- 우측: 뷰 전환(모바일/PC) 단추 + 테마 전환 단추 + 코칭 설정 -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <!-- 2가지 버전 전환 단추 (모바일 심플 뷰 / PC 프로 뷰) -->
+        <button type="button" class="btn-view-toggle flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs" id="btnViewToggle" title="PC 프로 뷰 / 모바일 심플 뷰 전환">
+          <span class="material-symbols-outlined text-[16px]">smartphone</span>
+          <span id="btnViewToggleText">모바일 심플 뷰</span>
+        </button>
+
+        <!-- 테마 전환 단추 (밝은 모드 / 다크 모드) -->
+        <button type="button" class="btn-theme-toggle flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border border-border-clean bg-surface-container-low hover:bg-surface-container transition-all" id="btnThemeToggle" title="화면 테마 변경">
+          <span class="material-symbols-outlined text-[16px]">dark_mode</span>
+          <span id="btnThemeToggleText">다크 모드로 전환</span>
+        </button>
+
+        <!-- 새 자극 & 모드 드롭다운 (PC 화면에서 표시) -->
+        <div class="hidden md:flex items-center gap-1">
+          <button type="button" class="px-2.5 py-1.5 rounded-lg bg-surface-container-low text-xs font-semibold hover:bg-surface-container transition-all" id="btnNextQuote" title="새로운 자극 명언 받기">
+            <span class="material-symbols-outlined text-[15px] align-middle">sync</span>
+          </button>
+          <select id="coachModeSelect" class="bg-surface-container-low text-xs font-semibold py-1.5 px-2 rounded-lg outline-none cursor-pointer border border-border-clean">
+            <option value="fact">🔥 팩트폭행</option>
+            <option value="mentor">🛡️ 멘토</option>
+            <option value="warm">🌱 격려</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====================================================================== -->
+  <!-- 2. 모바일 심플 뷰 (Mobile Focus Mode - Screen 5 기반 토스 스타일)      -->
+  <!-- ====================================================================== -->
+  <div class="mobile-simple-container pt-16 pb-24 px-4 max-w-lg mx-auto" id="mobileSimpleContainer" style="display: none;">
+    
+    <!-- 모바일 헤더 카드: D-Day & 연속 학습 스트릭 -->
+    <div class="flex items-center justify-between bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-sm mb-4 mt-2">
+      <div class="flex items-center gap-2">
+        <span class="px-3 py-1 rounded-xl bg-primary text-on-primary font-metric font-extrabold text-base tracking-tight" id="mDdayBadge">D-60</span>
+        <div>
+          <h3 class="text-xs font-bold text-on-surface" id="mExamTitle">제136회 소방기술사</h3>
+          <p class="text-[11px] text-outline" id="mPeriodInfo">60일 완독 중 1일차 진행 중</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary-fixed text-secondary font-bold text-xs" id="mStreakBadge">
+        <span class="material-symbols-outlined text-[15px]">local_fire_department</span>
+        <span id="mStreakDays">1일</span>
+      </div>
+    </div>
+
+    <!-- 자연어 헤드라인 섹션 (토스 특유의 친근하면서도 직관적인 타이포) -->
+    <div class="mb-4 px-1">
+      <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary text-[11px] font-bold mb-2">
+        <span class="material-symbols-outlined text-[13px]">bolt</span>
+        <span id="mPaceStatusBadge">목표 달성 순항 중</span>
+      </div>
+      <h1 class="font-headline text-2xl font-extrabold text-on-surface tracking-tight leading-snug break-keep" id="mNaturalHeadline">
+        소방기술사 60일 완독까지<br />
+        <span class="text-primary" id="mDaysLeftText">60일</span> 남았어요
+      </h1>
+      <p class="text-xs text-on-surface-variant mt-1" id="mHeadlineSub">
+        오늘 권장 진도를 끝내면 누적 진도율이 쑥 올라갑니다.
+      </p>
+    </div>
+
+    <!-- 메인 히어로 CTA 카드 (한 손 1초 터치 영역 극대화) -->
+    <div class="bg-surface-container-lowest border border-border-clean rounded-3xl p-5 shadow-[0_4px_20px_rgba(0,89,185,0.06)] relative overflow-hidden mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <span class="px-2.5 py-1 rounded-full bg-surface-container-low text-primary text-xs font-bold">
+          오늘의 권장 목표
+        </span>
+        <span class="text-xs font-bold text-primary flex items-center" id="mCurrentChapterTag">
+          수계소화설비 <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        </span>
+      </div>
+      
+      <div class="flex items-baseline gap-2 mb-2">
+        <span class="font-metric text-5xl font-black text-on-surface tracking-tight text-primary" id="mTodayTargetNum">22</span>
+        <span class="text-xl font-bold text-on-surface">페이지</span>
+        <span class="text-xs font-semibold text-outline ml-auto" id="mTodayRangeText">p.83 ~ p.104</span>
+      </div>
+
+      <div class="bg-surface-container-low rounded-2xl p-3 mb-4 flex items-center justify-between">
+        <div class="flex items-center gap-2 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-surface-container-lowest flex items-center justify-center text-primary shadow-xs">
+            <span class="material-symbols-outlined text-[18px]">menu_book</span>
+          </div>
+          <p class="text-xs font-semibold text-on-surface truncate" id="mTodaySubnoteHint">
+            소방기술사 핵심 개념 및 키워드 복습
+          </p>
+        </div>
+        <span class="text-[11px] text-outline shrink-0 pl-1">약 35분 소요</span>
+      </div>
+
+      <!-- 1초 원탭 기록 인터랙션 버튼 -->
+      <button type="button" class="w-full h-13 py-3.5 bg-primary hover:bg-primary-container text-on-primary rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-[0_6px_16px_rgba(0,89,185,0.25)] active:scale-[0.98] transition-all" id="mBtnOpenLog">
+        <span class="material-symbols-outlined text-[20px]">add_task</span>
+        <span>오늘 진도 1초 기록하기</span>
+      </button>
+    </div>
+
+    <!-- 미니 누적 완독 게이지 -->
+    <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-sm mb-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-on-surface">전체 60일 완독률</span>
+        <span class="text-xs font-black text-primary" id="mProgressPct">0%</span>
+      </div>
+      <div class="w-full h-2.5 bg-surface-container-highest rounded-full overflow-hidden mb-2">
+        <div class="h-full bg-primary rounded-full transition-all duration-700 ease-out" id="mProgressBarFill" style="width: 0%;"></div>
+      </div>
+      <div class="flex items-center justify-between text-[11px] text-outline">
+        <span id="mReadPagesText">0p 완료</span>
+        <span id="mTotalPagesText">전체 2,188p</span>
+      </div>
+    </div>
+
+    <!-- 오늘의 망각방지 복습 큐 (에빙하우스 기반 큐) -->
+    <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-sm mb-4">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-secondary text-[18px]">neurology</span>
+          <h4 class="text-sm font-bold text-on-surface">오늘의 망각방지 복습 큐</h4>
+          <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-secondary text-[10px] font-bold" id="mReviewCountBadge">0건</span>
+        </div>
+        <span class="text-[11px] text-outline">에빙하우스 5주기</span>
+      </div>
+
+      <div class="space-y-2" id="mReviewList">
+        <!-- JS 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- 퀵 포모도로 타이머 카드 -->
+    <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-sm flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-surface-container-low flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined text-[24px]">timer</span>
+        </div>
+        <div>
+          <div class="font-metric text-2xl font-black text-on-surface tabular-nums" id="mTimerDisplay">50:00</div>
+          <div class="text-[11px] text-outline">50분 집중 집중 루틴</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button type="button" class="px-3.5 py-2 bg-primary hover:bg-primary-container text-on-primary text-xs font-bold rounded-xl active:scale-95 transition-all flex items-center gap-1" id="mBtnTimerStart">
+          <span class="material-symbols-outlined text-[16px]">play_arrow</span> 시작
+        </button>
+        <button type="button" class="p-2 bg-surface-container-low text-on-surface-variant hover:bg-surface-container text-xs rounded-xl active:scale-95 transition-all" id="mBtnTimerReset">
+          <span class="material-symbols-outlined text-[16px]">rotate_left</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PC 버전 전환 안내 버튼 -->
+    <div class="text-center">
+      <button type="button" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-border-clean bg-surface-container-low hover:bg-surface-container text-xs font-bold text-on-surface transition-all active:scale-95" id="mBtnSwitchToPc">
+        <span class="material-symbols-outlined text-[16px]">desktop_windows</span>
+        <span>PC 프로 대시보드로 보기</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- 3. PC 프로 대시보드 (Screen 1~4 기반 Toss 미니멀 데스크톱 뷰)            -->
+  <!-- ====================================================================== -->
+  <div class="app-container flex min-h-screen pt-14" id="pcAppContainer">
+    
+    <!-- 좌측 사이드바 (고정) -->
+    <aside class="w-64 fixed left-0 top-14 bottom-0 bg-surface-container-lowest border-r border-border-clean flex flex-col p-4 z-40 shadow-[0_1px_8px_rgba(0,0,0,0.02)]">
+      
+      <!-- 브랜드 로고 & 교재명 -->
+      <div class="flex items-center gap-2.5 px-2 mb-4">
+        <div class="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
+          <span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+        </div>
+        <div>
+          <h2 class="font-headline font-bold text-sm tracking-tight text-on-surface">소방기술사 합격 스케줄러</h2>
+          <p class="text-[11px] text-outline">60일 완주 & 망각방지 코치</p>
+        </div>
+      </div>
+
+      <!-- 시험 D-Day & 스트릭 요약 박스 -->
+      <div class="bg-surface-container-low rounded-2xl p-3 mb-4 border border-border-clean/50">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-[11px] font-semibold text-outline">시험 D-Day</span>
+          <span class="font-metric text-sm font-extrabold text-primary" id="ddayCount">D-60</span>
+        </div>
+        <p class="text-xs font-bold text-on-surface" id="pcExamTitle">제136회 소방기술사</p>
+        <p class="text-[11px] text-outline mt-0.5" id="targetPeriodInfo">60일 목표 중 <strong>1일차</strong> 진행 중</p>
+        
+        <div class="mt-2 pt-2 border-t border-border-clean flex items-center justify-between text-secondary">
+          <span class="text-[11px] font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">local_fire_department</span> 연속 달성
+          </span>
+          <span class="font-metric text-xs font-extrabold" id="streakDays">1일차 🔥</span>
+        </div>
+      </div>
+
+      <!-- 네비게이션 탭 메뉴 -->
+      <nav class="flex-1 space-y-1">
+        <a href="#dashboard" class="nav-item active flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-xs transition-all" data-tab="dashboard">
+          <span class="material-symbols-outlined text-[18px]">grid_view</span> 대시보드 홈
+        </a>
+        <a href="#ebbinghaus" class="nav-item flex items-center justify-between px-3 py-2.5 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-low transition-all" data-tab="ebbinghaus">
+          <span class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[18px]">neurology</span> 에빙하우스 복습함
+          </span>
+          <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-secondary text-[10px] font-extrabold" id="sidebarReviewBadge">0건</span>
+        </a>
+        <a href="#notes" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-low transition-all" data-tab="notes">
+          <span class="material-symbols-outlined text-[18px]">edit_note</span> 학습 일지 & 서브노트
+        </a>
+        <a href="#analytics" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-low transition-all" data-tab="analytics">
+          <span class="material-symbols-outlined text-[18px]">show_chart</span> 페이싱 & 목표 분석
+        </a>
+        <a href="#timer" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold text-xs text-on-surface-variant hover:bg-surface-container-low transition-all" data-tab="timer">
+          <span class="material-symbols-outlined text-[18px]">timer</span> 포모도로 타이머
+        </a>
+      </nav>
+
+      <!-- 하단 액션 버튼 (오늘 진도 기록 + 설정/백업) -->
+      <div class="pt-3 border-t border-border-clean space-y-2">
+        <button type="button" class="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-bold text-xs shadow-sm transition-all active:scale-95" id="btnOpenLogModal">
+          <span class="material-symbols-outlined text-[16px]">add_task</span> 오늘 진도 기록
+        </button>
+        <div class="flex items-center gap-1">
+          <button type="button" class="flex-1 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-outline text-[11px] font-semibold transition-all flex items-center justify-center gap-1" id="btnEditTarget">
+            <span class="material-symbols-outlined text-[14px]">tune</span> 목표 변경
+          </button>
+          <button type="button" class="p-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-outline text-[11px] font-semibold transition-all" id="btnExportData" title="데이터 백업">
+            <span class="material-symbols-outlined text-[14px]">download</span>
+          </button>
+          <button type="button" class="p-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-outline text-[11px] font-semibold transition-all" id="btnImportData" title="데이터 복원">
+            <span class="material-symbols-outlined text-[14px]">upload</span>
+          </button>
+          <input type="file" id="fileInput" accept=".json" class="hidden" />
+        </div>
+      </div>
+    </aside>
+
+    <!-- 우측 메인 콘텐츠 영역 -->
+    <main class="flex-1 ml-64 p-6 sm:p-8 max-w-[1240px]">
+      
+      <!-- ================================================================== -->
+      <!-- TAB 1: 대시보드 홈 (Screen 1 기반)                                  -->
+      <!-- ================================================================== -->
+      <section class="tab-pane active space-y-6" id="tab-dashboard">
+        
+        <!-- Toss 스타일 Hero Summary Card -->
+        <div class="bg-surface-container-lowest border border-border-clean rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+          <div class="absolute -top-24 -right-24 w-80 h-80 bg-primary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 relative z-10">
+            <div>
+              <div class="flex items-center gap-2 mb-2">
+                <span class="px-2.5 py-0.5 rounded-md bg-surface-container text-on-surface-variant text-xs font-bold" id="heroBookBadge">
+                  NEW 마스터 소방기술사 전권 (2,188p)
+                </span>
+                <span class="inline-flex items-center text-secondary text-xs font-bold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-secondary mr-1 animate-pulse"></span>
+                  <span id="heroSplitText">60일 스플릿 1일차</span>
+                </span>
+              </div>
+              <h2 class="font-headline text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight" id="heroMainTitle">
+                소방기술사 60일 완독까지 <span class="text-primary" id="heroDaysRemaining">60일 남았어요</span>
+              </h2>
+              <p class="text-sm text-on-surface-variant mt-1.5" id="heroSubDesc">
+                오늘 권장 진도 <strong class="text-on-surface font-bold" id="heroTargetPagesText">37페이지</strong>를 끝내면 전체 누적 진도 <strong>1.7%</strong>를 달성합니다.
+              </p>
+            </div>
+
+            <!-- 메인 CTA 버튼들 -->
+            <div class="flex items-center gap-3 shrink-0">
+              <button type="button" class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary hover:bg-primary-container text-on-primary font-bold text-sm shadow-sm transition-all active:scale-95" id="btnOpenLogModal2">
+                <span class="material-symbols-outlined text-[20px]">add_task</span> 오늘 진도 1초 기록
+              </button>
+              <button type="button" class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-surface-container-low hover:bg-surface-container text-on-surface font-bold text-sm transition-all active:scale-95" id="btnStartPomodoroQuick">
+                <span class="material-symbols-outlined text-[20px]">timer</span> 포모도로 시작
+              </button>
+            </div>
+          </div>
+
+          <!-- 4대 통계 하이라이트 그리드 -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-4 border-t border-border-clean relative z-10">
+            
+            <!-- Stat 1: 오늘 권장 목표 -->
+            <div class="bg-surface-container-low rounded-2xl p-4 transition-all hover:bg-surface-container">
+              <span class="text-xs font-semibold text-outline block mb-1">오늘 권장 목표</span>
+              <div class="flex items-baseline gap-1">
+                <span class="font-metric text-2xl sm:text-3xl font-extrabold text-on-surface" id="todayTargetPage">37</span>
+                <span class="text-xs font-bold text-on-surface-variant">페이지</span>
+              </div>
+              <p class="text-xs text-on-surface-variant mt-1.5 truncate" id="todayTargetRange">예상: p.1 ~ p.37</p>
+            </div>
+
+            <!-- Stat 2: 망각방지 복습 -->
+            <div class="bg-surface-container-low rounded-2xl p-4 transition-all hover:bg-surface-container">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-semibold text-outline">망각방지 복습</span>
+                <span class="w-2 h-2 rounded-full bg-secondary"></span>
+              </div>
+              <div class="flex items-baseline gap-1">
+                <span class="font-metric text-2xl sm:text-3xl font-extrabold text-secondary" id="todayReviewTotal">0</span>
+                <span class="text-xs font-bold text-on-surface-variant">개 구간</span>
+              </div>
+              <p class="text-xs text-on-surface-variant mt-1.5 truncate" id="todayReviewPages">망각 위험 구간 총 0p</p>
+            </div>
+
+            <!-- Stat 3: 현재 누적 완독률 -->
+            <div class="bg-surface-container-low rounded-2xl p-4 transition-all hover:bg-surface-container">
+              <span class="text-xs font-semibold text-outline block mb-1">현재 누적 완독률</span>
+              <div class="flex items-baseline gap-1">
+                <span class="font-metric text-2xl sm:text-3xl font-extrabold text-on-surface" id="totalProgressPercent">0.0</span>
+                <span class="text-xs font-bold text-on-surface-variant">%</span>
+              </div>
+              <p class="text-xs text-on-surface-variant mt-1.5 truncate" id="totalPagesRatio">0 / 2,188 페이지</p>
+            </div>
+
+            <!-- Stat 4: 60일 페이싱 상태 -->
+            <div class="bg-surface-container-low rounded-2xl p-4 transition-all hover:bg-surface-container">
+              <span class="text-xs font-semibold text-outline block mb-1">완독 잔여 일수</span>
+              <div class="flex items-baseline gap-1">
+                <span class="font-metric text-2xl sm:text-3xl font-extrabold text-primary" id="remainingDaysCount">60</span>
+                <span class="text-xs font-bold text-primary">일</span>
+              </div>
+              <div class="flex items-center gap-1 mt-1.5 text-primary text-xs font-bold">
+                <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                <span id="paceStatusDesc">순항 중 (+0p)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================ -->
+        <!-- 신규: 오늘의 3단계 맞춤 합격 루틴 (Pre-Study -> Main -> Post-Study)   -->
+        <!-- ================================================================ -->
+        <div class="bg-gradient-to-r from-primary-fixed/30 via-surface-container-lowest to-secondary-fixed/30 border border-border-clean rounded-3xl p-6 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-xs">
+                <span class="material-symbols-outlined text-[22px]">auto_stories</span>
+              </div>
+              <div>
+                <h3 class="font-headline font-bold text-base text-on-surface">오늘의 3단계 맞춤 학습 루틴</h3>
+                <p class="text-xs text-outline">공부 전 10분 웜업 ➔ 본 진도 전진 ➔ 공부 후 10분 정착 복습 (약 10p 인출 원칙)</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container text-xs font-bold text-on-surface">
+                <span class="material-symbols-outlined text-[15px] text-primary">check_circle</span>
+                <span>에빙하우스 10p 복습 시스템</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- 3개 스텝 카드 그리드 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- STEP 1: 공부 전 10분 웜업 복습 -->
+            <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-all hover:border-primary/40 relative overflow-hidden" id="cardStep1">
+              <div class="absolute top-0 left-0 right-0 h-1 bg-secondary" id="step1Indicator"></div>
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-fixed text-secondary text-[11px] font-extrabold">
+                    STEP 1 · 공부 시작 전
+                  </span>
+                  <span class="text-[11px] font-bold text-outline">약 10분 (10p)</span>
+                </div>
+                <h4 class="font-headline font-bold text-sm text-on-surface mb-1" id="step1Title">
+                  에빙하우스 10p 웜업 인출
+                </h4>
+                <div class="bg-surface-container-low rounded-xl p-2.5 mb-3 border border-border-clean/60">
+                  <div class="text-xs font-bold text-primary mb-0.5" id="step1PageRange">p.531 ~ p.540 (10p)</div>
+                  <p class="text-[11px] text-outline line-clamp-2" id="step1Memo">
+                    어제 공부한 소방펌프 성능곡선 및 상사법칙 핵심 공식 깜지 백지 테스트
+                  </p>
+                </div>
+              </div>
+              <button type="button" class="w-full py-2 px-3 rounded-xl bg-surface-container-low hover:bg-secondary-fixed hover:text-secondary text-on-surface text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 border border-border-clean" id="btnStep1Done">
+                <span class="material-symbols-outlined text-[16px]">check</span>
+                <span id="step1BtnText">공부 전 10분 복습 완료</span>
+              </button>
+            </div>
+
+            <!-- STEP 2: 본 진도 전진 -->
+            <div class="bg-surface-container-lowest border-2 border-primary/50 rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-all hover:border-primary relative overflow-hidden" id="cardStep2">
+              <div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary text-[11px] font-extrabold">
+                    STEP 2 · 오늘의 본 공부
+                  </span>
+                  <span class="text-[11px] font-bold text-primary">신규 전진</span>
+                </div>
+                <h4 class="font-headline font-bold text-sm text-on-surface mb-1" id="step2Title">
+                  오늘 정해진 분량 전진
+                </h4>
+                <div class="bg-surface-container-low rounded-xl p-2.5 mb-3 border border-border-clean/60">
+                  <div class="text-xs font-bold text-primary mb-0.5" id="step2PageRange">p.541 ~ p.550 (10p) 진행 중</div>
+                  <p class="text-[11px] text-outline line-clamp-2" id="step2Memo">
+                    [CH 08. 소방펌프] NPSH, 캐비테이션, 수격작용, 맥동현상 집중 이해
+                  </p>
+                </div>
+              </div>
+              <button type="button" class="w-full py-2 px-3 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 shadow-xs btn-open-log-trigger">
+                <span class="material-symbols-outlined text-[16px]">edit_square</span>
+                <span>오늘 진도 1초 기록하기</span>
+              </button>
+            </div>
+
+            <!-- STEP 3: 공부 후 10분 정착 복습 -->
+            <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-xs flex flex-col justify-between transition-all hover:border-emerald-500/40 relative overflow-hidden" id="cardStep3">
+              <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500" id="step3Indicator"></div>
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-extrabold">
+                    STEP 3 · 공부 마친 직후
+                  </span>
+                  <span class="text-[11px] font-bold text-outline">약 10분 (10p)</span>
+                </div>
+                <h4 class="font-headline font-bold text-sm text-on-surface mb-1" id="step3Title">
+                  당일 10p 기억 정착 인출
+                </h4>
+                <div class="bg-surface-container-low rounded-xl p-2.5 mb-3 border border-border-clean/60">
+                  <div class="text-xs font-bold text-emerald-600 mb-0.5" id="step3PageRange">p.541 ~ p.550 (10p)</div>
+                  <p class="text-[11px] text-outline line-clamp-2" id="step3Memo">
+                    책을 덮고 오늘 공부한 핵심 키워드 3가지와 주요 공식을 백지에 쓰며 10분 복습
+                  </p>
+                </div>
+              </div>
+              <button type="button" class="w-full py-2 px-3 rounded-xl bg-surface-container-low hover:bg-emerald-50 hover:text-emerald-700 text-on-surface text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 border border-border-clean" id="btnStep3Done">
+                <span class="material-symbols-outlined text-[16px]">task_alt</span>
+                <span id="step3BtnText">공부 후 10분 복습 완료</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 60일 페이싱 로드맵 궤적 카드 -->
+        <div class="bg-surface-container-lowest border border-border-clean rounded-3xl p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span class="font-headline font-bold text-sm text-on-surface">60일 로드맵 페이싱 궤적</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-surface-container text-xs font-bold text-primary" id="pacingTrajectoryBadge">Day 1 / 60</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-semibold text-outline">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-primary"></span> 내 실제 궤적</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-outline-variant"></span> 60일 이상적 계획</span>
+            </div>
+          </div>
+
+          <!-- 로드맵 게이지 바 -->
+          <div class="relative w-full h-3.5 bg-surface-container-highest rounded-full overflow-hidden mb-3">
+            <div class="h-full bg-gradient-to-r from-primary to-primary-container rounded-full transition-all duration-700" id="mainProgressBar" style="width: 0%;"></div>
+            <div class="absolute top-0 bottom-0 w-1 bg-outline rounded-full" id="idealMarker" style="left: 1.6%;"></div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-outline">
+            <span id="startDateText">시작일: 2026-09-11</span>
+            <span class="font-bold text-primary" id="paceAlertText">현재 60일 완주 목표 궤도에 맞춰 순항 중입니다!</span>
+            <span id="targetDateText">완료일: 2026-11-10</span>
+          </div>
+        </div>
+
+        <!-- 2열 그리드: 좌측 '오늘의 복습 큐' + 우측 '최근 7일 학습 차트' -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- 좌측: 오늘의 망각방지 복습 큐 -->
+          <div class="lg:col-span-6 bg-surface-container-lowest border border-border-clean rounded-3xl p-6 shadow-sm flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary text-[20px]">neurology</span>
+                <h3 class="font-headline font-bold text-sm text-on-surface">오늘의 망각방지 복습 큐</h3>
+                <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-secondary text-xs font-bold" id="reviewCountBadge">0</span>
+              </div>
+              <span class="text-xs font-semibold text-outline" id="reviewTagStatus">에빙하우스 주기</span>
+            </div>
+
+            <div class="space-y-3 flex-1" id="dashboardReviewList">
+              <!-- JS 렌더링 -->
+            </div>
+          </div>
+
+          <!-- 우측: 최근 7일간 학습량 차트 -->
+          <div class="lg:col-span-6 bg-surface-container-lowest border border-border-clean rounded-3xl p-6 shadow-sm flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[20px]">bar_chart</span>
+                <h3 class="font-headline font-bold text-sm text-on-surface">최근 7일간 학습량 (페이지)</h3>
+              </div>
+              <span class="text-xs font-semibold text-outline">목표선 대비 실적</span>
+            </div>
+
+            <div class="h-64 relative flex-1">
+              <canvas id="weeklyChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 2: 에빙하우스 복습함 (Screen 2 기반)                            -->
+      <!-- ================================================================== -->
+      <section class="tab-pane space-y-6" id="tab-ebbinghaus">
+        
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-secondary text-xs font-bold mb-2">
+              <span class="material-symbols-outlined text-[15px]">timer</span>
+              <span>에빙하우스 망각곡선 방어 시스템</span>
+            </div>
+            <h2 class="font-headline text-2xl font-extrabold text-on-surface tracking-tight">
+              5단계 망각방지 누적 복습 큐
+            </h2>
+            <p class="text-xs text-on-surface-variant mt-1">
+              1일, 3일, 7일, 14일, 30일 주기에 도달한 구간을 키워드 중심으로 인출하여 영구 기억으로 고정합니다.
+            </p>
+          </div>
+
+          <!-- 복습 필터 버튼들 -->
+          <div class="flex items-center gap-1.5 shrink-0 bg-surface-container-low p-1 rounded-xl border border-border-clean">
+            <button type="button" class="filter-btn active px-3 py-1.5 rounded-lg text-xs font-bold text-on-primary bg-primary transition-all" data-filter="today">오늘 복습</button>
+            <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-outline hover:text-on-surface transition-all" data-filter="all">전체 일정 (+30D)</button>
+            <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-outline hover:text-on-surface transition-all" data-filter="overdue">지연 구간</button>
+            <button type="button" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-outline hover:text-on-surface transition-all" data-filter="completed">완료</button>
+          </div>
+        </div>
+
+        <!-- 에빙하우스 복습 분량 기준 안내 배너 -->
+        <div class="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3 shadow-xs">
+          <span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">tips_and_updates</span>
+          <div class="text-xs text-on-surface leading-relaxed">
+            <strong class="text-primary font-bold">💡 하루 복습 분량 안내:</strong> 
+            책 전체를 다시 읽는 것이 아닙니다! 에빙하우스 주기에 도달한 
+            <strong>직전 학습 구간(약 15~20페이지 분량)의 핵심 키워드 및 서브노트를 10~15분 동안 빠르게 인출(깜지/백지 테스트)</strong>하는 과학적 기억 고정 방식입니다. 
+            상단 <strong>[오늘 복습]</strong> 필터를 통해 오늘 날짜에 배정된 핵심 큐만 집중적으로 점검하세요.
+          </div>
+        </div>
+
+        <!-- 5단계 카드 가이드 -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-3.5 text-center shadow-xs">
+            <span class="text-[11px] font-bold text-primary block mb-1">1단계 · +1d</span>
+            <strong class="font-headline text-sm text-on-surface block">단기기억 고정</strong>
+            <span class="text-[10px] text-outline">망각률 70% 방어</span>
+          </div>
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-3.5 text-center shadow-xs">
+            <span class="text-[11px] font-bold text-secondary block mb-1">2단계 · +3d</span>
+            <strong class="font-headline text-sm text-on-surface block">키워드 인출</strong>
+            <span class="text-[10px] text-outline">서브노트 연동</span>
+          </div>
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-3.5 text-center shadow-xs">
+            <span class="text-[11px] font-bold text-amber-600 block mb-1">3단계 · +7d</span>
+            <strong class="font-headline text-sm text-on-surface block">1주 누적 종합</strong>
+            <span class="text-[10px] text-outline">단원별 맵핑</span>
+          </div>
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-3.5 text-center shadow-xs">
+            <span class="text-[11px] font-bold text-blue-600 block mb-1">4단계 · +14d</span>
+            <strong class="font-headline text-sm text-on-surface block">기출문제 접목</strong>
+            <span class="text-[10px] text-outline">답안지 틀 구성</span>
+          </div>
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-3.5 text-center shadow-xs">
+            <span class="text-[11px] font-bold text-purple-600 block mb-1">5단계 · +30d</span>
+            <strong class="font-headline text-sm text-on-surface block">장기기억 정착</strong>
+            <span class="text-[10px] text-outline">시험장 프리패스</span>
+          </div>
+        </div>
+
+        <!-- 전체 복습 큐 테이블 카드 -->
+        <div class="bg-surface-container-lowest border border-border-clean rounded-3xl p-6 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-border-clean text-outline font-bold">
+                  <th class="py-3 px-3">단계</th>
+                  <th class="py-3 px-3">복습 목표일</th>
+                  <th class="py-3 px-3">페이지 범위</th>
+                  <th class="py-3 px-3">분량</th>
+                  <th class="py-3 px-3">핵심 서브노트 요약</th>
+                  <th class="py-3 px-3 text-right">상태 / 액션</th>
+                </tr>
+              </thead>
+              <tbody id="fullReviewTableBody" class="divide-y divide-border-clean">
+                <!-- JS 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 3: 학습 일지 & 서브노트 (Screen 3 기반)                        -->
+      <!-- ================================================================== -->
+      <section class="tab-pane space-y-6" id="tab-notes">
+        
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-fixed text-primary text-xs font-bold mb-2">
+              <span class="material-symbols-outlined text-[15px]">edit_note</span>
+              <span>누적 학습 기록 히스토리</span>
+            </div>
+            <h2 class="font-headline text-2xl font-extrabold text-on-surface tracking-tight" id="notesTitle">
+              매일 쌓아가는 기술사 합격 서브노트
+            </h2>
+            <p class="text-xs text-on-surface-variant mt-1">
+              기록된 진도는 에빙하우스 5단계 망각방지 복습 큐로 자동 전환되어 관리됩니다.
+            </p>
+          </div>
+
+          <button type="button" class="btn-open-log-trigger flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-bold text-xs shadow-sm transition-all active:scale-95 shrink-0">
+            <span class="material-symbols-outlined text-[16px]">add</span> 오늘 진도 추가
+          </button>
+        </div>
+
+        <!-- 일일 학습 일지 히스토리 테이블 -->
+        <div class="bg-surface-container-lowest border border-border-clean rounded-3xl p-6 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-border-clean text-outline font-bold">
+                  <th class="py-3 px-3">학습일</th>
+                  <th class="py-3 px-3">학습 구간</th>
+                  <th class="py-3 px-3">분량</th>
+                  <th class="py-3 px-3">이해도</th>
+                  <th class="py-3 px-3">핵심 키워드 & 요약 메모</th>
+                  <th class="py-3 px-3">에빙하우스 연동</th>
+                  <th class="py-3 px-3 text-right">삭제</th>
+                </tr>
+              </thead>
+              <tbody id="logHistoryTableBody" class="divide-y divide-border-clean">
+                <!-- JS 렌더링 -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 4: 페이싱 & 목표 분석 (Screen 4 기반)                          -->
+      <!-- ================================================================== -->
+      <section class="tab-pane space-y-6" id="tab-analytics">
+        
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-fixed text-primary text-xs font-bold mb-2">
+            <span class="material-symbols-outlined text-[15px]">analytics</span>
+            <span>60일 로드맵 페이싱 심층 분석</span>
+          </div>
+          <h2 class="font-headline text-2xl font-extrabold text-on-surface tracking-tight" id="analyticsHeadline">
+            현재 페이스로 <span class="text-primary" id="analyticsEstimatedDays">D-58</span> 후 완독 예상
+          </h2>
+          <p class="text-xs text-on-surface-variant mt-1" id="analyticsExpectedDate">
+            현재 추세를 유지하면 목표 시험일 전에 여유롭게 1회독을 끝마치고 2회독 모의고사로 돌입합니다.
+          </p>
+        </div>
+
+        <!-- 4개 지표 카드 그리드 -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-xs">
+            <span class="text-xs text-outline font-semibold block mb-1">총 누적 학습 페이지</span>
+            <div class="font-metric text-2xl font-extrabold text-on-surface" id="analyticsTotalPages">0p</div>
+            <p class="text-[11px] text-outline mt-1" id="analyticsTotalPct">전체 2,188p 중 0% 완독</p>
+          </div>
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-xs">
+            <span class="text-xs text-outline font-semibold block mb-1">일일 평균 진도</span>
+            <div class="font-metric text-2xl font-extrabold text-primary" id="analyticsDailyAvg">0.0p / 일</div>
+            <p class="text-[11px] text-outline mt-1" id="analyticsDailyTargetComp">목표 속도 대비 100%</p>
+          </div>
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-xs">
+            <span class="text-xs text-outline font-semibold block mb-1">에빙하우스 복습 완수율</span>
+            <div class="font-metric text-2xl font-extrabold text-secondary" id="analyticsReviewRate">100%</div>
+            <p class="text-[11px] text-outline mt-1" id="analyticsReviewFraction">총 0건 중 0건 완수</p>
+          </div>
+          <div class="bg-surface-container-lowest border border-border-clean rounded-2xl p-4 shadow-xs">
+            <span class="text-xs text-outline font-semibold block mb-1">수험자 집중도 레벨</span>
+            <div class="font-headline text-lg font-extrabold text-amber-600" id="userLevelBadge">Lv.1 입문자</div>
+            <p class="text-[11px] text-outline mt-1">소방기술사 정복 단계</p>
+          </div>
+        </div>
+
+        <!-- 2열 차트: 좌측 '누적 완독 궤적', 우측 '이해도 분포' -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div class="lg:col-span-8 bg-surface-container-lowest border border-border-clean rounded-3xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-headline font-bold text-sm text-on-surface">60일 누적 진도 궤적 (계획선 vs 실적선)</h3>
+              <span class="text-xs font-semibold text-outline">페이지 누적</span>
+            </div>
+            <div class="h-72 relative">
+              <canvas id="cumulativeChart"></canvas>
+            </div>
+          </div>
+
+          <div class="lg:col-span-4 bg-surface-container-lowest border border-border-clean rounded-3xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-headline font-bold text-sm text-on-surface">학습 이해도 분포</h3>
+              <span class="text-xs font-semibold text-outline">상 / 중 / 하</span>
+            </div>
+            <div class="h-72 relative flex items-center justify-center">
+              <canvas id="comprehensionChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- TAB 5: 포모도로 타이머 (Screen 6 기반)                              -->
+      <!-- ================================================================== -->
+      <section class="tab-pane space-y-6" id="tab-timer">
+        
+        <div class="max-w-xl mx-auto bg-surface-container-lowest border border-border-clean rounded-3xl p-8 shadow-sm text-center">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-primary text-xs font-bold mb-4">
+            <span class="material-symbols-outlined text-[15px]">timer</span>
+            <span>소방기술사 50분 집중 몰입 모드</span>
+          </div>
+
+          <!-- 타이머 프리셋 버튼 -->
+          <div class="flex items-center justify-center gap-2 mb-6">
+            <button type="button" class="pill-btn active px-4 py-2 rounded-xl text-xs font-bold transition-all border border-border-clean" data-time="3000">50분 집중 / 10분 휴식</button>
+            <button type="button" class="pill-btn px-4 py-2 rounded-xl text-xs font-bold transition-all border border-border-clean bg-surface-container-low text-outline" data-time="1500">25분 단기 집중</button>
+            <button type="button" class="pill-btn px-4 py-2 rounded-xl text-xs font-bold transition-all border border-border-clean bg-surface-container-low text-outline" data-time="600">10분 인출 테스트</button>
+          </div>
+
+          <!-- 대형 원형 타이머 게이지 -->
+          <div class="relative w-64 h-64 mx-auto mb-6 flex items-center justify-center">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" stroke-width="8" class="text-surface-container-high" />
+              <circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" stroke-width="8" stroke-dasharray="552.92" stroke-dashoffset="0" stroke-linecap="round" class="text-primary transition-all duration-1000" id="timerProgressCircle" />
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span class="font-metric text-5xl font-black text-on-surface tabular-nums tracking-tight" id="timerDisplay">50:00</span>
+              <span class="text-xs font-semibold text-outline mt-1" id="timerStatus">집중 준비 완료</span>
+            </div>
+          </div>
+
+          <!-- 컨트롤 버튼 -->
+          <div class="flex items-center justify-center gap-3">
+            <button type="button" class="px-8 py-3.5 rounded-2xl bg-primary hover:bg-primary-container text-on-primary font-bold text-sm shadow-md active:scale-95 transition-all flex items-center gap-2" id="btnTimerStart">
+              <span class="material-symbols-outlined text-[20px]">play_arrow</span>
+              <span>집중 시작</span>
+            </button>
+            <button type="button" class="px-5 py-3.5 rounded-2xl bg-surface-container-low hover:bg-surface-container text-on-surface font-bold text-sm border border-border-clean active:scale-95 transition-all" id="btnTimerReset">
+              <span class="material-symbols-outlined text-[20px]">rotate_left</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-outline mt-6">
+            기술사 1교시(100분) 및 2~4교시(100분) 집중력 훈련을 위해 50분 논스톱 쓰기 루틴을 권장합니다.
+          </p>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- 4. 오늘 진도 기록 모달 (Screen 6 기반 프리미엄 토스 스타일 모달)         -->
+  <!-- ====================================================================== -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-sm transition-opacity opacity-0 pointer-events-none" id="logModal">
+    <div class="w-full max-w-xl bg-surface-container-lowest border border-border-clean rounded-3xl p-6 sm:p-7 shadow-2xl transition-transform scale-95 max-h-[90vh] overflow-y-auto">
+      
+      <!-- 헤더 -->
+      <div class="flex items-center justify-between pb-4 border-b border-border-clean mb-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-xs">
+            <span class="material-symbols-outlined text-[20px]">add_task</span>
+          </div>
+          <div>
+            <h3 class="font-headline font-bold text-base text-on-surface">오늘 학습 진도 기록</h3>
+            <p class="text-xs text-outline">소방기술사 교재 기준 1초 자동 연동</p>
+          </div>
+        </div>
+        <button type="button" class="p-1.5 rounded-xl hover:bg-surface-container text-outline text-lg transition-colors" id="btnCloseLogModal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form id="logForm" class="space-y-4">
+        <!-- 학습 일자 -->
+        <div>
+          <label class="block text-xs font-bold text-on-surface mb-1">학습 일자</label>
+          <input type="date" id="inputLogDate" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-low border border-border-clean text-xs font-semibold text-on-surface outline-none focus:border-primary" required />
+        </div>
+
+        <!-- 28개 챕터 드롭다운 선택기 -->
+        <div>
+          <label class="block text-xs font-bold text-on-surface mb-1">소방기술사 챕터 선택 (페이지 & 핵심키워드 자동완성)</label>
+          <select id="selectChapter" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-low border border-border-clean text-xs font-semibold text-on-surface outline-none focus:border-primary">
+            <option value="">-- 직접 입력 또는 챕터 선택 --</option>
+          </select>
+        </div>
+
+        <!-- 진도 범위 (시작p ~ 종료p) -->
+        <div class="bg-surface-container-low rounded-2xl p-4 border border-border-clean">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-on-surface flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px] text-primary">auto_stories</span> 학습 페이지 범위
+            </span>
+            <span class="text-[11px] text-outline font-semibold" id="calcHint">학습 분량: 총 0 페이지</span>
+          </div>
+          <div class="grid grid-cols-11 gap-2 items-center">
+            <div class="col-span-5">
+              <span class="block text-[10px] text-outline font-semibold mb-0.5">시작 페이지</span>
+              <input type="number" id="inputStartPage" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-lowest border border-border-clean text-sm font-bold text-on-surface outline-none focus:border-primary" min="1" required />
+            </div>
+            <div class="col-span-1 text-center text-outline font-bold">~</div>
+            <div class="col-span-5">
+              <span class="block text-[10px] text-outline font-semibold mb-0.5">종료 페이지</span>
+              <input type="number" id="inputEndPage" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-lowest border border-border-clean text-sm font-bold text-on-surface outline-none focus:border-primary" min="1" required />
+            </div>
+          </div>
+        </div>
+
+        <!-- 이해도 평가 (상 / 중 / 하) -->
+        <div>
+          <label class="block text-xs font-bold text-on-surface mb-1.5">이해도 & 인출 난이도 평가</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="flex items-center gap-2 p-3 rounded-xl bg-surface-container-low border border-border-clean cursor-pointer hover:bg-surface-container transition-all">
+              <input type="radio" name="comprehension" value="high" class="accent-primary" />
+              <span class="text-xs font-bold text-on-surface">🟢 상 (완전 숙지)</span>
+            </label>
+            <label class="flex items-center gap-2 p-3 rounded-xl bg-surface-container-low border border-border-clean cursor-pointer hover:bg-surface-container transition-all">
+              <input type="radio" name="comprehension" value="mid" checked class="accent-primary" />
+              <span class="text-xs font-bold text-primary">🟡 중 (원리 이해)</span>
+            </label>
+            <label class="flex items-center gap-2 p-3 rounded-xl bg-surface-container-low border border-border-clean cursor-pointer hover:bg-surface-container transition-all">
+              <input type="radio" name="comprehension" value="low" class="accent-primary" />
+              <span class="text-xs font-bold text-on-surface">🔴 하 (난해 파트)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 서브노트 요약 & 키워드 -->
+        <div>
+          <label class="block text-xs font-bold text-on-surface mb-1">서브노트 키워드 & 핵심 요약 (복습 큐에 노출)</label>
+          <textarea id="inputTopicMemo" rows="3" class="w-full p-3 rounded-xl bg-surface-container-low border border-border-clean text-xs font-semibold text-on-surface outline-none focus:border-primary resize-none" placeholder="답안지에 쓸 핵심 공식, 기준 조항, 다이어그램 요약을 입력하세요..."></textarea>
+        </div>
+
+        <!-- 에빙하우스 자동 스케줄링 안내 -->
+        <div class="p-3 bg-surface-container-low rounded-xl border border-border-clean flex items-center gap-2 text-xs text-outline">
+          <span class="material-symbols-outlined text-primary text-[18px]">schedule_send</span>
+          <span>저장 시 에빙하우스 5주기(+1d, +3d, +7d, +14d, +30d) 복습 큐가 즉시 자동 생성됩니다.</span>
+        </div>
+
+        <!-- 푸터 버튼 -->
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" class="px-4 py-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-outline" id="btnCancelLog">취소</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-xs font-bold shadow-sm active:scale-95 transition-all">기록 저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- 5. 60일 완주 목표 & 교재 설정 모달                                      -->
+  <!-- ====================================================================== -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-sm transition-opacity opacity-0 pointer-events-none" id="settingsModal">
+    <div class="w-full max-w-lg bg-surface-container-lowest border border-border-clean rounded-3xl p-6 sm:p-7 shadow-2xl transition-transform scale-95 max-h-[90vh] overflow-y-auto">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-border-clean mb-5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-xs">
+            <span class="material-symbols-outlined text-[20px]">tune</span>
+          </div>
+          <div>
+            <h3 class="font-headline font-bold text-base text-on-surface">60일 완주 로드맵 설정</h3>
+            <p class="text-xs text-outline">교재 분량과 목표 시험일을 조정합니다</p>
+          </div>
+        </div>
+        <button type="button" class="p-1.5 rounded-xl hover:bg-surface-container text-outline text-lg transition-colors" id="btnCloseSettingsModal">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- 교재 프리셋 버튼들 -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-on-surface mb-2">교재 프리셋 선택 (노트북LM 연동)</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold border border-border-clean bg-surface-container-low hover:bg-surface-container transition-all" data-preset="vol1">
+            제1권 (1,048p)
+          </button>
+          <button type="button" class="preset-btn px-3 py-2 rounded-xl text-xs font-bold border border-border-clean bg-surface-container-low hover:bg-surface-container transition-all" data-preset="vol2">
+            제2권 (1,140p)
+          </button>
+          <button type="button" class="preset-btn active px-3 py-2 rounded-xl text-xs font-bold border border-border-clean bg-primary text-on-primary transition-all" data-preset="full">
+            전권 완독 (2,188p)
+          </button>
+        </div>
+      </div>
+
+      <form id="settingsForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-on-surface mb-1">교재명</label>
+          <input type="text" id="settingBookTitle" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-low border border-border-clean text-xs font-semibold text-on-surface outline-none focus:border-primary" required />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-on-surface mb-1">총 페이지 수</label>
+            <input type="number" id="settingTotalPages" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-low border border-border-clean text-xs font-bold text-on-surface outline-none focus:border-primary" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-on-surface mb-1">목표 완주 일수</label>
+            <input type="number" id="settingTargetDays" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-low border border-border-clean text-xs font-bold text-on-surface outline-none focus:border-primary" required />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-on-surface mb-1">학습 시작일</label>
+            <input type="date" id="settingStartDate" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-low border border-border-clean text-xs font-semibold text-on-surface outline-none focus:border-primary" required />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-on-surface mb-1">목표 시험일 (D-Day)</label>
+            <input type="date" id="settingExamDate" class="w-full h-11 px-3.5 rounded-xl bg-surface-container-low border border-border-clean text-xs font-semibold text-on-surface outline-none focus:border-primary" required />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" class="px-4 py-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container text-xs font-bold text-outline" id="btnCancelSettings">취소</button>
+          <button type="submit" class="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary text-xs font-bold shadow-sm active:scale-95 transition-all">설정 저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js?v=20260911_cycle_550p_v6"></script>
+</body>
+</html>
