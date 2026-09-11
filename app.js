@@ -75,8 +75,8 @@ function getDailyQuoteIndex(dateStr, length, offset = 0) {
 
 const STORAGE_KEYS = {
   SETTINGS: "firemaster_settings_vol1_2nd_v2",
-  LOGS: "firemaster_logs_stitch_v1",
-  REVIEWS: "firemaster_reviews_stitch_v1"
+  LOGS: "firemaster_logs_vol1_2nd_v2",
+  REVIEWS: "firemaster_reviews_vol1_2nd_v2"
 };
 
 // ============================================================================
@@ -182,21 +182,21 @@ function getDefaultSettings() {
 }
 
 function getInitialSampleLogs(startDate) {
-  const todayStr = formatDate(new Date());
   const d1 = formatDate(addDays(new Date(), -1));
   const d2 = formatDate(addDays(new Date(), -2));
   const d3 = formatDate(addDays(new Date(), -3));
+  const d4 = formatDate(addDays(new Date(), -4));
 
   return [
     {
-      id: "log_today_pump_541_550",
-      date: todayStr,
+      id: "log_pump_541_550",
+      date: d1,
       startPage: 541,
       endPage: 550,
       pageCount: 10,
       comprehension: "mid",
       memo: "[CH 08. 소방펌프] NPSHa vs NPSHr 유효흡입양정 판정식, 캐비테이션(공동현상) 발생원인·방지대책, 수격작용(Joukowsky) 완화장치, 서징(Surging) 맥동조건, 성능시험배관 세팅",
-      createdAt: new Date().toISOString()
+      createdAt: new Date(d1).toISOString()
     },
     {
       id: "log_pump_yesterday",
@@ -719,13 +719,11 @@ function renderThreeStepRoutine(metrics) {
   const todayLog = AppState.logs.find(l => l.date === todayStr);
 
   if (todayLog) {
-    if (step2PageRange) step2PageRange.innerText = `p.${todayLog.startPage} ~ p.${todayLog.endPage} (${todayLog.pageCount}p) 진행 중 🔥`;
+    if (step2PageRange) step2PageRange.innerText = `p.${todayLog.startPage} ~ p.${todayLog.endPage} (${todayLog.pageCount}p) 완료됨 🎉`;
     if (step2Memo) step2Memo.innerText = todayLog.memo;
   } else {
-    const nextStart = metrics.maxEndPage + 1;
-    const nextEnd = Math.min(AppState.settings.totalPages, nextStart + 9);
-    if (step2PageRange) step2PageRange.innerText = `p.${nextStart} ~ p.${nextEnd} (10p 권장)`;
-    if (step2Memo) step2Memo.innerText = "오늘 나갈 신규 10페이지 진도를 펼치세요!";
+    if (step2PageRange) step2PageRange.innerText = `p.${metrics.targetRangeStart} ~ p.${metrics.targetRangeEnd} (${metrics.dailyTargetPages}p 권장)`;
+    if (step2Memo) step2Memo.innerText = "[CH 08~09] 소방펌프 압력세팅 마무리 및 옥내소화전·수계설비 기초 진도 (약 30분 소요)";
   }
 
   // STEP 3: 공부 후 10분 정착 복습
@@ -735,15 +733,20 @@ function renderThreeStepRoutine(metrics) {
   const step3BtnText = document.getElementById("step3BtnText");
   const step3Indicator = document.getElementById("step3Indicator");
 
-  const targetStudyLog = todayLog || AppState.logs[0];
   const postStudyKey = `post_study_done_${todayStr}`;
   const isPostStudyDone = localStorage.getItem(postStudyKey) === "true";
 
-  if (targetStudyLog) {
-    if (step3PageRange) step3PageRange.innerText = `p.${targetStudyLog.startPage} ~ p.${targetStudyLog.endPage} (${targetStudyLog.pageCount}p)`;
-    if (step3Memo) step3Memo.innerText = isPostStudyDone 
-      ? "오늘 공부한 10p 핵심 개념과 공식을 백지에 쓰며 10분 정착 복습을 마쳤습니다! 👏" 
-      : "방금 공부한 책을 덮고, 핵심 공식 3가지와 주요 기준을 백지에 10분간 쓰며 오늘 공부를 마무리하세요.";
+  if (step3PageRange) {
+    if (todayLog) {
+      step3PageRange.innerText = `p.${todayLog.startPage} ~ p.${todayLog.endPage} (${todayLog.pageCount}p)`;
+    } else {
+      step3PageRange.innerText = `p.${metrics.targetRangeStart} ~ p.${metrics.targetRangeEnd} (${metrics.dailyTargetPages}p)`;
+    }
+  }
+  if (step3Memo) {
+    step3Memo.innerText = isPostStudyDone 
+      ? `오늘 공부한 ${todayLog ? todayLog.pageCount : metrics.dailyTargetPages}p 핵심 개념과 공식을 백지에 쓰며 10분 정착 복습을 마쳤습니다! 👏` 
+      : "방금 공부한 책을 덮고, 펌프 및 수계설비 핵심 공식 3가지와 주요 기준을 백지에 10분간 쓰며 오늘 공부를 마무리하세요.";
   }
 
   if (isPostStudyDone) {
