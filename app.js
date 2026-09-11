@@ -74,7 +74,7 @@ function getDailyQuoteIndex(dateStr, length, offset = 0) {
 }
 
 const STORAGE_KEYS = {
-  SETTINGS: "firemaster_settings_stitch_v1",
+  SETTINGS: "firemaster_settings_vol1_2nd_v2",
   LOGS: "firemaster_logs_stitch_v1",
   REVIEWS: "firemaster_reviews_stitch_v1"
 };
@@ -335,6 +335,12 @@ const AppState = {
   reviews: [],
 
   init() {
+    // 이전 구버전 세팅(2,188p / 28p 원인) 완전 정리
+    try {
+      localStorage.removeItem("firemaster_settings_stitch_v1");
+      localStorage.removeItem("firemaster_settings_v1");
+    } catch (e) {}
+
     const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
     let parsedSettings = null;
     if (savedSettings) {
