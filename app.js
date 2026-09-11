@@ -616,6 +616,11 @@ function renderAll() {
   const heroDaysRemaining = document.getElementById("heroDaysRemaining");
   if (heroDaysRemaining) heroDaysRemaining.innerText = `${metrics.remainingDays}일 남았어요`;
 
+  const mBtnOpenPdfText = document.getElementById("mBtnOpenPdfText");
+  if (mBtnOpenPdfText) mBtnOpenPdfText.innerText = `p.${metrics.targetRangeStart} 교재 열기`;
+  const pcBtnOpenPdfText = document.getElementById("pcBtnOpenPdfText");
+  if (pcBtnOpenPdfText) pcBtnOpenPdfText.innerText = `p.${metrics.targetRangeStart} 교재 열기`;
+
   const heroSubDesc = document.getElementById("heroSubDesc");
   if (heroSubDesc) {
     const nextPct = Math.min(100, (((metrics.maxEndPage + metrics.dailyTargetPages) / AppState.settings.totalPages) * 100)).toFixed(1);
@@ -1753,6 +1758,233 @@ function setupViewMode() {
 }
 
 // ============================================================================
+// 10. 소방마스터 교재 전용 스마트 PDF 뷰어 (IndexedDB / Blob 연동)
+// ============================================================================
+
+const PDF_STORAGE = {
+  DB_NAME: "FiremasterPdfDB",
+  STORE_NAME: "pdf_files",
+  FILE_KEY: "sobang_master_vol1_pdf",
+
+  openDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.DB_NAME, 1);
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          db.createObjectStore(this.STORE_NAME);
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async savePdf(file) {
+    try {
+      const db = await this.openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(this.STORE_NAME, "readwrite");
+        const store = tx.objectStore(this.STORE_NAME);
+        const req = store.put({
+          file: file,
+          name: file.name,
+          size: file.size,
+          lastModified: file.lastModified,
+          savedAt: new Date().toISOString()
+        }, this.FILE_KEY);
+        req.onsuccess = () => resolve(true);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      console.warn("IndexedDB 저장 실패:", e);
+      return false;
+    }
+  },
+
+  async loadPdf() {
+    try {
+      const db = await this.openDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction(this.STORE_NAME, "readonly");
+        const store = tx.objectStore(this.STORE_NAME);
+        const req = store.get(this.FILE_KEY);
+        req.onsuccess = () => resolve(req.result ? req.result.file : null);
+        req.onerror = () => resolve(null);
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+};
+
+let currentPdfBlobUrl = null;
+let currentPdfFile = null;
+let currentViewerPage = 551;
+
+function setupPdfViewer() {
+  const modal = document.getElementById("pdfViewerModal");
+  const iframe = document.getElementById("pdfViewerFrame");
+  const placeholder = document.getElementById("pdfPlaceholder");
+  const fileInput = document.getElementById("pdfFileInput");
+  const pageInput = document.getElementById("pdfPageInput");
+  const btnSelect = document.getElementById("btnSelectPdfFile");
+  const btnSelectPlaceholder = document.getElementById("btnPlaceholderSelectPdf");
+  const btnClose = document.getElementById("btnClosePdfViewer");
+  const btnJump = document.getElementById("btnJumpToPage");
+  const btnQuickJump = document.getElementById("btnQuickJumpTodayTarget");
+  const btnOpenNewTab = document.getElementById("btnOpenPdfNewTab");
+  const btnRecord = document.getElementById("btnRecordFromPdf");
+  const fileNameDisplay = document.getElementById("pdfFileNameDisplay");
+  const fileStatusDisplay = document.getElementById("pdfFileStatusDisplay");
+  const btnSelectText = document.getElementById("btnSelectPdfText");
+  const bottomHintText = document.getElementById("pdfBottomHintText");
+
+  function renderPdfAtPage(page) {
+    currentViewerPage = page || 551;
+    if (pageInput) pageInput.value = currentViewerPage;
+
+    if (!currentPdfBlobUrl) {
+      if (placeholder) placeholder.classList.remove("hidden");
+      if (iframe) iframe.classList.add("hidden");
+      return;
+    }
+
+    if (placeholder) placeholder.classList.add("hidden");
+    if (iframe) {
+      iframe.classList.remove("hidden");
+      iframe.src = `${currentPdfBlobUrl}#page=${currentViewerPage}&view=FitH`;
+    }
+  }
+
+  window.openPdfViewer = function(targetPage) {
+    const metrics = calculatePacingMetrics();
+    const page = targetPage || metrics.targetRangeStart || 551;
+    
+    if (modal) {
+      modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    if (bottomHintText) {
+      bottomHintText.innerHTML = `오늘 권장 목표 <strong>p.${metrics.targetRangeStart} ~ p.${metrics.targetRangeEnd} (${metrics.dailyTargetPages}p)</strong> 집중 열람 중`;
+    }
+    const quickJumpText = document.getElementById("btnQuickJumpTodayText");
+    if (quickJumpText) {
+      quickJumpText.innerText = `오늘 진도 p.${metrics.targetRangeStart}`;
+    }
+
+    renderPdfAtPage(page);
+  };
+
+  function closePdfViewer() {
+    if (modal) {
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+  }
+
+  async function handleFile(file) {
+    if (!file) return;
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      alert("PDF 파일(*.pdf)만 선택 가능합니다.");
+      return;
+    }
+
+    currentPdfFile = file;
+    if (currentPdfBlobUrl) {
+      URL.revokeObjectURL(currentPdfBlobUrl);
+    }
+    currentPdfBlobUrl = URL.createObjectURL(file);
+
+    if (fileNameDisplay) fileNameDisplay.innerText = file.name;
+    if (fileStatusDisplay) fileStatusDisplay.innerText = `연결됨 (${(file.size / (1024 * 1024)).toFixed(1)} MB) · 기기 내 안전 저장`;
+    if (btnSelectText) btnSelectText.innerText = "교재 변경";
+
+    await PDF_STORAGE.savePdf(file);
+    renderPdfAtPage(currentViewerPage);
+  }
+
+  btnSelect?.addEventListener("click", () => fileInput?.click());
+  btnSelectPlaceholder?.addEventListener("click", () => fileInput?.click());
+  fileInput?.addEventListener("change", (e) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0]);
+    }
+  });
+
+  placeholder?.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    placeholder.classList.add("bg-primary-fixed/30");
+  });
+  placeholder?.addEventListener("dragleave", () => {
+    placeholder.classList.remove("bg-primary-fixed/30");
+  });
+  placeholder?.addEventListener("drop", (e) => {
+    e.preventDefault();
+    placeholder.classList.remove("bg-primary-fixed/30");
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  btnJump?.addEventListener("click", () => {
+    const p = parseInt(pageInput?.value, 10);
+    if (!isNaN(p) && p >= 1) {
+      renderPdfAtPage(p);
+    }
+  });
+
+  pageInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      btnJump?.click();
+    }
+  });
+
+  btnQuickJump?.addEventListener("click", () => {
+    const metrics = calculatePacingMetrics();
+    renderPdfAtPage(metrics.targetRangeStart || 551);
+  });
+
+  btnOpenNewTab?.addEventListener("click", () => {
+    if (currentPdfBlobUrl) {
+      window.open(`${currentPdfBlobUrl}#page=${currentViewerPage}&view=FitH`, "_blank");
+    } else {
+      alert("먼저 소방마스터 PDF 파일을 선택해주세요.");
+      fileInput?.click();
+    }
+  });
+
+  btnClose?.addEventListener("click", closePdfViewer);
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) closePdfViewer();
+  });
+
+  btnRecord?.addEventListener("click", () => {
+    closePdfViewer();
+    const btnOpenLogModal2 = document.getElementById("btnOpenLogModal2");
+    btnOpenLogModal2?.click();
+  });
+
+  document.querySelectorAll(".btn-open-pdf-trigger").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const metrics = calculatePacingMetrics();
+      window.openPdfViewer(metrics.targetRangeStart || 551);
+    });
+  });
+
+  PDF_STORAGE.loadPdf().then(file => {
+    if (file) {
+      currentPdfFile = file;
+      currentPdfBlobUrl = URL.createObjectURL(file);
+      if (fileNameDisplay) fileNameDisplay.innerText = file.name;
+      if (fileStatusDisplay) fileStatusDisplay.innerText = `자동 연결됨 (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
+      if (btnSelectText) btnSelectText.innerText = "교재 변경";
+    }
+  });
+}
+
+// ============================================================================
 // 9. 애플리케이션 진입점 (DOMContentLoaded)
 // ============================================================================
 
@@ -1764,6 +1996,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupTimer();
   setupBackupAndRestore();
   setupViewMode();
+  setupPdfViewer();
   renderAll();
 });
 
