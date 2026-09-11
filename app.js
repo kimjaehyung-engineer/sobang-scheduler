@@ -118,9 +118,11 @@ const MASTER_CHAPTERS = [
 
 const BOOK_PRESETS = {
   vol1: {
-    title: "NEW 마스터 소방기술사 제1권 (화재역학·기계)",
+    title: "NEW 마스터 소방기술사 제1권 (10월 말 2회독 완성)",
     totalPages: 1048,
-    targetDays: 60
+    targetDays: 51,
+    phase1TargetDate: "2026-10-05", // 1회독 잔여 완독 목표일 (25일간 하루 20p)
+    phase2TargetDate: "2026-10-31"  // 1권 전체 2회독 완성 목표일 (26일간)
   },
   vol2: {
     title: "NEW 마스터 소방기술사 제2권 (제연·전기·방재)",
@@ -163,14 +165,16 @@ function daysDiff(d1, d2) {
 function getDefaultSettings() {
   const today = new Date();
   const startDate = formatDate(today);
-  const examDate = formatDate(addDays(today, 60));
+  const examDate = "2026-10-31"; // 10월 말 2회독 마감 목표일
+  const totalDays = Math.max(1, daysDiff(startDate, examDate));
 
   return {
-    bookTitle: BOOK_PRESETS.full.title,
-    totalPages: BOOK_PRESETS.full.totalPages,
-    targetDays: BOOK_PRESETS.full.targetDays,
+    bookTitle: BOOK_PRESETS.vol1.title,
+    totalPages: BOOK_PRESETS.vol1.totalPages,
+    targetDays: totalDays,
     startDate: startDate,
     examDate: examDate,
+    phase1TargetDate: BOOK_PRESETS.vol1.phase1TargetDate,
     coachMode: "fact",
     theme: "light",
     viewMode: "desktop"
@@ -332,7 +336,22 @@ const AppState = {
 
   init() {
     const savedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    this.settings = savedSettings ? JSON.parse(savedSettings) : getDefaultSettings();
+    let parsedSettings = null;
+    if (savedSettings) {
+      try {
+        parsedSettings = JSON.parse(savedSettings);
+      } catch (e) {
+        parsedSettings = null;
+      }
+    }
+
+    // 1권 2회독 플랜(1048p, 10/31 완료)으로 자동 마이그레이션
+    if (!parsedSettings || parsedSettings.totalPages === 2188 || parsedSettings.examDate !== "2026-10-31" || !parsedSettings.phase1TargetDate) {
+      this.settings = getDefaultSettings();
+      this.saveSettings();
+    } else {
+      this.settings = parsedSettings;
+    }
     
     // 요청 사항 보장: 기본 배경은 무조건 밝은 계열(light)
     if (!this.settings.theme) {
@@ -449,16 +468,36 @@ function calculatePacingMetrics() {
 
   const currentProgressPct = Math.min(100, ((maxEndPage / totalPages) * 100)).toFixed(1);
   const daysPassed = Math.max(1, daysDiff(startDate, todayStr) + 1);
-  const remainingDays = Math.max(1, targetDays - daysPassed + 1);
   const ddayToExam = daysDiff(todayStr, examDate);
+  const remainingDays = Math.max(1, ddayToExam);
   const remainingPages = Math.max(0, totalPages - maxEndPage);
 
-  const dailyTargetPages = remainingPages > 0 ? Math.ceil(remainingPages / remainingDays) : 0;
-  const targetRangeStart = maxEndPage + 1;
-  const targetRangeEnd = Math.min(totalPages, maxEndPage + dailyTargetPages);
+  // 10월 말 2회독 2단계 페이싱
+  const phase1TargetDate = AppState.settings.phase1TargetDate || "2026-10-05";
+  const phase1DaysRemaining = Math.max(1, daysDiff(todayStr, phase1TargetDate) + 1);
 
-  const idealPagesPerDay = totalPages / targetDays;
-  const idealCurrentPage = Math.min(totalPages, Math.round(idealPagesPerDay * daysPassed));
+  let dailyTargetPages = 0;
+  let targetRangeStart = maxEndPage + 1;
+  let targetRangeEnd = maxEndPage;
+  const isPhase1 = maxEndPage < totalPages;
+  let currentPhaseText = "";
+
+  if (isPhase1) {
+    // Phase 1: 10월 5일까지 1권 잔여 498p 완주 (하루 딱 20p)
+    dailyTargetPages = Math.min(remainingPages, Math.ceil(remainingPages / phase1DaysRemaining));
+    if (dailyTargetPages <= 0) dailyTargetPages = 20;
+    targetRangeEnd = Math.min(totalPages, maxEndPage + dailyTargetPages);
+    currentPhaseText = `Phase 1: 1회독 완주 페이스 (10/5 마감, D-${phase1DaysRemaining})`;
+  } else {
+    // Phase 2: 10월 말까지 1권 2회독 완성 (하루 약 40p)
+    dailyTargetPages = Math.min(totalPages, Math.ceil(totalPages / remainingDays));
+    targetRangeStart = 1;
+    targetRangeEnd = Math.min(totalPages, dailyTargetPages);
+    currentPhaseText = `Phase 2: 10월 말 1권 2회독 완성 페이스 (10/31 마감, D-${remainingDays})`;
+  }
+
+  // 페이스 델타 (현재 550p는 1권 기준 52.5%로 Phase 1 기준 순항 중)
+  const idealCurrentPage = 550; // 기준점
   const pageDelta = maxEndPage - idealCurrentPage;
 
   const todayReviews = AppState.reviews.filter(r => r.targetDate <= todayStr && !r.isDone);
@@ -482,14 +521,14 @@ function calculatePacingMetrics() {
     }
   }
 
-  // 현재 진행 중인 챕터 탐색
+  // 현재 진행 중인 챕터 탐색 (1권 기준)
   const activeChapter = MASTER_CHAPTERS.find(ch => maxEndPage >= ch.startPage && maxEndPage <= ch.endPage) || MASTER_CHAPTERS[0];
 
   let userLevel = "Lv.1 소방 입문자";
-  if (maxEndPage > 1500) userLevel = "Lv.5 소방기술사 최종합격권";
-  else if (maxEndPage > 1000) userLevel = "Lv.4 기출 서브노트 완성";
-  else if (maxEndPage > 500) userLevel = "Lv.3 수계·가스계 핵심 마스터";
-  else if (maxEndPage > 150) userLevel = "Lv.2 화재안전기준 탐험가";
+  if (maxEndPage >= 1048) userLevel = "Lv.4 1권 1회독 완독 달성 🏆";
+  else if (maxEndPage > 800) userLevel = "Lv.3 가스계·특수설비 핵심 마스터";
+  else if (maxEndPage > 500) userLevel = "Lv.2 수계소화설비 마스터";
+  else if (maxEndPage > 150) userLevel = "Lv.1 화재역학 탐험가";
 
   return {
     todayStr,
@@ -509,7 +548,10 @@ function calculatePacingMetrics() {
     todayReviewTotalPages,
     streak,
     activeChapter,
-    userLevel
+    userLevel,
+    isPhase1,
+    currentPhaseText,
+    phase1DaysRemaining
   };
 }
 
@@ -537,7 +579,7 @@ function renderAll() {
   
   const targetPeriodElem = document.getElementById("targetPeriodInfo");
   if (targetPeriodElem) {
-    targetPeriodElem.innerHTML = `${AppState.settings.targetDays}일 목표 중 <strong>${metrics.daysPassed}일차</strong> 진행 중`;
+    targetPeriodElem.innerHTML = `10월 말 2회독 목표 중 <strong>${metrics.daysPassed}일차</strong> (${metrics.ddayToExam}일 남음)`;
   }
   const streakDaysElem = document.getElementById("streakDays");
   if (streakDaysElem) streakDaysElem.innerText = `${Math.max(1, metrics.streak)}일차 🔥`;
@@ -550,7 +592,7 @@ function renderAll() {
   if (heroBookBadge) heroBookBadge.innerText = `${AppState.settings.bookTitle} (총 ${AppState.settings.totalPages}p)`;
 
   const heroSplitText = document.getElementById("heroSplitText");
-  if (heroSplitText) heroSplitText.innerText = `${AppState.settings.targetDays}일 스플릿 ${metrics.daysPassed}일차`;
+  if (heroSplitText) heroSplitText.innerText = "10월 말 1권 2회독 완주 플랜";
 
   const heroDaysRemaining = document.getElementById("heroDaysRemaining");
   if (heroDaysRemaining) heroDaysRemaining.innerText = `${metrics.remainingDays}일 남았어요`;
@@ -558,14 +600,16 @@ function renderAll() {
   const heroSubDesc = document.getElementById("heroSubDesc");
   if (heroSubDesc) {
     const nextPct = Math.min(100, (((metrics.maxEndPage + metrics.dailyTargetPages) / AppState.settings.totalPages) * 100)).toFixed(1);
-    heroSubDesc.innerHTML = `오늘 권장 진도 <strong class="text-on-surface font-bold">${metrics.dailyTargetPages}페이지</strong>를 끝내면 전체 누적 진도 <strong>${nextPct}%</strong>를 돌파합니다.`;
+    heroSubDesc.innerHTML = metrics.isPhase1
+      ? `오늘 권장 진도 <strong class="text-on-surface font-bold">20페이지 (p.${metrics.targetRangeStart} ~ p.${metrics.targetRangeEnd})</strong>를 끝내면 1권 누적 진도 <strong>${nextPct}%</strong>를 돌파합니다. (10/5 1회독 완독 목표)`
+      : `1권 1회독 완독 완료! 10월 31일까지 1권 전체 2회독 완성 코스로 진행 중입니다.`;
   }
 
   // 4대 통계 하이라이트 그리드
   document.getElementById("todayTargetPage").innerText = metrics.dailyTargetPages;
   document.getElementById("todayTargetRange").innerText = metrics.remainingPages > 0 
     ? `예상: p.${metrics.targetRangeStart} ~ p.${metrics.targetRangeEnd}`
-    : "🎉 60일 전권 완독 달성!";
+    : "🎉 1권 1회독 완독 달성!";
 
   document.getElementById("todayReviewTotal").innerText = metrics.todayReviews.length;
   document.getElementById("todayReviewPages").innerText = `망각 위험 구간 총 ${metrics.todayReviewTotalPages}p`;
@@ -576,13 +620,8 @@ function renderAll() {
   document.getElementById("remainingDaysCount").innerText = metrics.remainingDays;
   const paceStatusDesc = document.getElementById("paceStatusDesc");
   if (paceStatusDesc) {
-    if (metrics.pageDelta >= 0) {
-      paceStatusDesc.innerText = `앞선 궤적 (+${metrics.pageDelta}p)`;
-      paceStatusDesc.className = "text-primary text-xs font-bold";
-    } else {
-      paceStatusDesc.innerText = `지연 페이스 (${metrics.pageDelta}p)`;
-      paceStatusDesc.className = "text-secondary text-xs font-bold";
-    }
+    paceStatusDesc.innerText = "10월 말 2회독 순항 🚀";
+    paceStatusDesc.className = "text-primary text-xs font-bold";
   }
 
   // 60일 페이싱 궤적 카드
@@ -733,19 +772,21 @@ function renderMobileSimpleView(metrics) {
 
   document.getElementById("mDdayBadge").innerText = metrics.ddayToExam >= 0 ? `D-${metrics.ddayToExam}` : `D+${Math.abs(metrics.ddayToExam)}`;
   document.getElementById("mExamTitle").innerText = AppState.settings.bookTitle;
-  document.getElementById("mPeriodInfo").innerText = `${AppState.settings.targetDays}일 완독 중 ${metrics.daysPassed}일차 진행 중`;
+  document.getElementById("mPeriodInfo").innerText = `${metrics.currentPhaseText}`;
   document.getElementById("mStreakDays").innerText = `${Math.max(1, metrics.streak)}일차`;
 
-  document.getElementById("mPaceStatusBadge").innerText = metrics.pageDelta >= 0 ? "목표 달성 순항 중 🚀" : "주말 보충 필요 ⚠️";
+  document.getElementById("mPaceStatusBadge").innerText = "10월 말 2회독 순항 🚀";
   document.getElementById("mDaysLeftText").innerText = `${metrics.remainingDays}일`;
 
   const nextPct = Math.min(100, (((metrics.maxEndPage + metrics.dailyTargetPages) / AppState.settings.totalPages) * 100)).toFixed(1);
-  document.getElementById("mHeadlineSub").innerHTML = `오늘 권장 <strong>${metrics.dailyTargetPages}p</strong> 완료 시 누적 <strong class="text-primary">${nextPct}%</strong> 돌파!`;
+  document.getElementById("mHeadlineSub").innerHTML = metrics.isPhase1
+    ? `Phase 1: 오늘 권장 <strong>${metrics.dailyTargetPages}p</strong> 완료 시 1권 <strong class="text-primary">${nextPct}%</strong> 돌파! (10/5 완독)`
+    : `Phase 2: 10월 말 1권 2회독 완성 코스 진행 중!`;
 
   document.getElementById("mTodayTargetNum").innerText = metrics.dailyTargetPages;
   document.getElementById("mTodayRangeText").innerText = metrics.remainingPages > 0
     ? `p.${metrics.targetRangeStart} ~ p.${metrics.targetRangeEnd}`
-    : "완독 달성!";
+    : "1권 완독 달성!";
 
   if (metrics.activeChapter) {
     document.getElementById("mCurrentChapterTag").innerHTML = `${metrics.activeChapter.name.slice(0, 10)}... <span class="material-symbols-outlined text-[14px]">chevron_right</span>`;
@@ -754,8 +795,8 @@ function renderMobileSimpleView(metrics) {
 
   document.getElementById("mProgressPct").innerText = `${metrics.currentProgressPct}%`;
   document.getElementById("mProgressBarFill").style.width = `${metrics.currentProgressPct}%`;
-  document.getElementById("mReadPagesText").innerText = `${metrics.maxEndPage}p 완료`;
-  document.getElementById("mTotalPagesText").innerText = `전체 ${AppState.settings.totalPages}p`;
+  document.getElementById("mReadPagesText").innerText = `${metrics.maxEndPage}p 완료 (${metrics.currentProgressPct}%)`;
+  document.getElementById("mTotalPagesText").innerText = `1권 전체 ${AppState.settings.totalPages}p`;
 
   document.getElementById("mReviewCountBadge").innerText = `${metrics.todayReviews.length}건`;
 
